@@ -11,5 +11,6 @@ public enum TokenType {
   SEMICOLON,
   VAR,
   EQUALS,
-  NUMBER
+  NUMBER,
+  INVALID
 }
