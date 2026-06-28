@@ -1,4 +1,4 @@
  private
   static main(){
-    x     = 2;
+    x     = 2;~
 }
