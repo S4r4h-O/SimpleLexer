@@ -8,26 +8,30 @@ public class Lexer {
 
   private final String source;
   List<Token> tokens = new LinkedList<>();
-  private int rowNo;
+  private int rowNo = 1;
   private int rowIdx = 0;
-  private int nextIdx = 1;
+  private int cursorIdx = -1;
 
   public Lexer(String source) {
     this.source = Objects.requireNonNull(source);
   }
 
   public void lexer() {
+
     while (rowIdx < source.length()) {
       var token = nextToken();
-      if (token != null) {
-        tokens.add(token);
+      if (token.tokenType != TokenType.INVALID) {
+        this.tokens.add(token);
+      } else {
+        System.out.printf("Error in line %d, %d: %s%n", rowNo, (cursorIdx - 1), token);
       }
     }
+
     tokens.forEach(System.out::println);
-    System.out.println("rowNo: " + rowNo);
   }
 
   private Token nextToken() {
+
     skipWhitespace();
 
     char current = peek();
@@ -76,32 +80,33 @@ public class Lexer {
     }
 
     advance();
-    return null;
+    return new Token(TokenType.INVALID, String.valueOf(current));
   }
 
   private String readNumber() {
-    int start = rowIdx;
+    int start = this.rowIdx;
     while (!isAtEnd() && Character.isDigit(peek())) {
       advance();
     }
-    return source.substring(start, rowIdx);
+    return source.substring(start, this.rowIdx);
   }
 
   private String readIdent() {
-    int start = rowIdx;
-    while (!isAtEnd() && Character.isLetter(peek())) {
+    int start = this.rowIdx;
+    while (!isAtEnd() && Character.isAlphabetic(peek())) {
       advance();
     }
-    return source.substring(start, rowIdx);
+    return source.substring(start, this.rowIdx);
   }
 
   private void skipWhitespace() {
     while (!isAtEnd()) {
       char c = peek();
       if (c == '\n') {
-        rowNo++;
+        this.cursorIdx = 0;
+        this.rowNo++;
         advance();
-      } else if (c == ' ' || c == '\t' || c == '\r') {
+      } else if (Character.isSpaceChar(c)) {
         advance();
       } else {
         break;
@@ -117,12 +122,21 @@ public class Lexer {
   }
 
   private void advance() {
-    if (!isAtEnd()) rowIdx++;
+    if (!isAtEnd()) {
+      this.rowIdx++;
+      this.cursorIdx++;
+    }
   }
 
   private boolean isAtEnd() {
-    return rowIdx >= source.length();
+    return this.rowIdx >= source.length();
   }
 
-  record Token(TokenType tokenType, String value) {}
+  record Token(TokenType tokenType, String value) {
+
+    @Override
+    public String toString() {
+      return "Token{" + "tokenType=" + tokenType + ", value='" + value + '\'' + '}';
+    }
+  }
 }
